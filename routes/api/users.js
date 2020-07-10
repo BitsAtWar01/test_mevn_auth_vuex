@@ -19,7 +19,7 @@ const User = require('../../models/User');
          email,
          password,
          confirm_password
-     } = req.body
+     } = req.body;
      if(password !== confirm_password){
          return res.status(400).json({
              msg: "Password doesn't match."
@@ -56,7 +56,7 @@ const User = require('../../models/User');
             newUSer.save().then(user => {
                 return res.status(201).json({
                     success: true,
-                    mesg: "User is now registered."
+                    msg: "User is now registered."
                 });
             })
         })
