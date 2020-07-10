@@ -26,40 +26,48 @@ const User = require('../../models/User');
          });
      }
      //Check for unique Username
-     User.findOne({username: username}).then(user => {
-         if(user){
-            return res.status(400).json({
-                msg: "Username is already taken."
-            });
-         }
-     })
-     //Check for unique Email
-     User.findOne({email: email}).then(user => {
-         if(user){
-            return res.status(400).json({
-                msg: "Email is already registered. Did you forget your password?"
-            });
-         }
-     })
-     // The data is valid & now we can Register the User
-     let newUSer = new User({
-         name,
-         username,
-         password,
-         email
-     })
-     //Hash the password
-     bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUSer.password, salt, (err, hash) => {
-            if(err) throw err;
-            else newUSer.password = hash;
-            newUSer.save().then(user => {
-                return res.status(201).json({
-                    success: true,
-                    msg: "User is now registered."
-                });
+     User.findOne({$or: [
+        {username: username},
+        {email: email}
+     ]}).then(user => {
+         if(!user){
+            // The data is valid & now we can Register the User
+            let newUSer = new User({
+                name,
+                username,
+                password,
+                email
             })
-        })
+            //Hash the password
+            bcrypt.genSalt(10, (err, salt) => {
+                bcrypt.hash(newUSer.password, salt, (err, hash) => {
+                    if(err) throw err;
+                    else newUSer.password = hash;
+                    newUSer.save().then(user => {
+                        return res.status(201).json({
+                            success: true,
+                            msg: "User is now registered."
+                        });
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                })
+            })
+         } else if (user){
+            //Check if Unique Username
+            if(user.username === username){
+                return res.status(400).json({
+                    msg: "Username is already taken."
+                });
+            //Check if Unique Email
+            } else if(user.email){
+                return res.status(400).json({
+                    msg: "Email is already registered. Did you forget your password?"
+                });
+            }
+         }
+     }).catch(err => {
+         console.log(err);
      })
  });
 
